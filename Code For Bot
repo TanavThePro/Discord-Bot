@@ -1,0 +1,615 @@
+import discord
+from discord.ext import commands
+import asyncio
+from discord import guild
+import random
+from discord import embeds
+from discord import message
+from webserver import keep_alive
+import os
+import aiohttp
+from random import randint
+from datetime import *
+from discord import Game
+from PIL import Image
+from io import BytesIO
+
+client = commands.Bot(command_prefix=commands.when_mentioned_or("."),
+                      help_command=None,
+                      activity=discord.Activity(
+                          type=discord.ActivityType.listening,
+                          name=".Help | Dm Me"))
+
+player1 = ""
+player2 = ""
+turn = ""
+gameOver = True
+
+board = []
+
+winningConditions = [[0, 1, 2], [3, 4, 5], [6, 7, 8], [0, 3, 6], [1, 4, 7],
+                     [2, 5, 8], [0, 4, 8], [2, 4, 6]]
+
+
+@client.command()
+async def tictactoe(ctx, p1: discord.Member, p2: discord.Member):
+    global count
+    global player1
+    global player2
+    global turn
+    global gameOver
+
+    if gameOver:
+        global board
+        board = [
+            ":white_large_square:", ":white_large_square:",
+            ":white_large_square:", ":white_large_square:",
+            ":white_large_square:", ":white_large_square:",
+            ":white_large_square:", ":white_large_square:",
+            ":white_large_square:"
+        ]
+        turn = ""
+        gameOver = False
+        count = 0
+
+        player1 = p1
+        player2 = p2
+
+        # print the board
+        line = ""
+        for x in range(len(board)):
+            if x == 2 or x == 5 or x == 8:
+                line += " " + board[x]
+                await ctx.send(line)
+                line = ""
+            else:
+                line += " " + board[x]
+
+        # determine who goes first
+        num = random.randint(1, 2)
+        if num == 1:
+            turn = player1
+            await ctx.send("It is <@" + str(player1.id) + ">'s turn.")
+        elif num == 2:
+            turn = player2
+            await ctx.send("It is <@" + str(player2.id) + ">'s turn.")
+    else:
+        await ctx.send(
+            "A game is already in progress! Finish it before starting a new one."
+        )
+
+
+@client.command()
+async def place(ctx, pos: int):
+    global turn
+    global player1
+    global player2
+    global board
+    global count
+    global gameOver
+
+    if not gameOver:
+        mark = ""
+        if turn == ctx.author:
+            if turn == player1:
+                mark = ":regional_indicator_x:"
+            elif turn == player2:
+                mark = ":o2:"
+            if 0 < pos < 10 and board[pos - 1] == ":white_large_square:":
+                board[pos - 1] = mark
+                count += 1
+
+                # print the board
+                line = ""
+                for x in range(len(board)):
+                    if x == 2 or x == 5 or x == 8:
+                        line += " " + board[x]
+                        await ctx.send(line)
+                        line = ""
+                    else:
+                        line += " " + board[x]
+
+                checkWinner(winningConditions, mark)
+                print(count)
+                if gameOver == True:
+                    await ctx.send(mark + " wins!")
+                elif count >= 9:
+                    gameOver = True
+                    await ctx.send("It's a tie!")
+
+                # switch turns
+                if turn == player1:
+                    turn = player2
+                elif turn == player2:
+                    turn = player1
+            else:
+                await ctx.send(
+                    "Be sure to choose an integer between 1 and 9 (inclusive) and an unmarked tile."
+                )
+        else:
+            await ctx.send("It is not your turn.")
+    else:
+        await ctx.send("Please start a new game using the .tictactoe command.")
+
+
+def checkWinner(winningConditions, mark):
+    global gameOver
+    for condition in winningConditions:
+        if board[condition[0]] == mark and board[
+                condition[1]] == mark and board[condition[2]] == mark:
+            gameOver = True
+
+
+@tictactoe.error
+async def tictactoe_error(ctx, error):
+    print(error)
+    if isinstance(error, commands.MissingRequiredArgument):
+        await ctx.reply("Please mention 2 players for this command")
+    elif isinstance(error, commands.BadArgument):
+        await ctx.send(
+            "Please make sure to mention/ping players (ie. <@688534433879556134>)."
+        )
+
+
+@place.error
+async def place_error(ctx, error):
+    if isinstance(error, commands.MissingRequiredArgument):
+        await ctx.reply("Please enter a position you would like to mark.")
+    elif isinstance(error, commands.BadArgument):
+        await ctx.send("Please make sure to enter an integer.")
+
+
+@client.command()
+async def Ping(ctx):
+    latency = round(client.latency * 1000)
+    if latency < 1:
+        embed = discord.Embed(
+            description=f" :ping_pong: Pong! 0 MissingRequiredArgument",
+            color=(0x00ffee))
+        await ctx.send(embed=embed)
+    else:
+        embed = discord.Embed(description=f" :ping_pong: Pong! {latency} ms",
+                              color=0x00fbff, timestamp=ctx.message.created_at)
+        await ctx.reply(embed=embed)
+
+
+@client.command()
+async def Hi(ctx):
+    embed = discord.Embed(title="Hello How Is Your Day",
+        description="Respond `.Good` or `.Bad`",
+        color=0x00ffee, timestamp=ctx.message.created_at)
+    await ctx.reply(embed=embed)
+
+
+@client.command()
+async def Anime(ctx):
+    embed = discord.Embed(
+        title="Anime Page",
+        description=
+        "`1 .Aot` Attack On Titans \n \n `2 .Naruto` Shows All The Naruto Shows",
+        color=0x00ffee, timestamp=ctx.message.created_at)
+    await ctx.reply(embed=embed)
+
+
+@client.command()
+async def Naruto(ctx):
+    embed = discord.Embed(
+        title="Naruto",
+        description=
+        "`Naruto`: https://www.crunchyroll.com/naruto \n \n `Naruto Shippuden`: https://www.crunchyroll.com/naruto-shippuden \n \n `Boruto`: https://www.crunchyroll.com/boruto-naruto-next-generations",
+        color=0x00ffee, timestamp=ctx.message.created_at)
+    await ctx.reply(embed=embed)
+
+
+@client.command()
+async def Aot(ctx):
+    embed = discord.Embed(
+        title="Attack On Titans",
+        description=
+        "`Attack On Titans Link` : https://www.crunchyroll.com/attack-on-titan",
+        color=0x00ffee, timestamp=ctx.message.created_at)
+    await ctx.reply(embed=embed)
+
+
+@client.command()
+async def Wanted(ctx, user: discord.Member = None):
+    if user == None:
+        user = ctx.author
+
+    wanted = Image.open("wanted.jpeg")
+
+    asset = user.avatar_url_as(size = 128)
+    
+    data = BytesIO(await asset.read())
+    
+    pfp = Image.open(data)
+    pfp = pfp.resize((789,1109))
+
+    wanted.paste(pfp, (201,394))
+
+    wanted.save("profile.jpeg")
+
+    await ctx.send(file= discord.File("profile.jpeg"))
+    return
+
+
+@client.command()
+async def Delete(ctx, user: discord.Member = None):
+    if user == None:
+        user = ctx.author
+
+    Delete = Image.open("Delete.jpg")
+
+    asset = user.avatar_url_as(size = 128)
+    
+    data = BytesIO(await asset.read())
+    
+    pfp = Image.open(data)
+    pfp = pfp.resize((127,133))
+
+    Delete.paste(pfp, (51,83))
+
+    Delete.save("lol.jpeg")
+
+    await ctx.send(file= discord.File("lol.jpeg"))
+    return
+
+
+
+
+@client.command()
+async def Math(ctx):
+    embed = discord.Embed(
+        title="Math Page",
+        description=
+        "`1 .Add` Will Add \n \n `2 .Sub` Will Subtract \n \n `3 .Mult` Will Multiply \n \n `4 .Div` Will Divide",
+        color=0x00ffee, timestamp=ctx.message.created_at)
+    await ctx.reply(embed=embed)
+
+
+@client.command()
+async def Info(ctx):
+    embed = discord.Embed(
+        title="People's Info",
+        description="`1 .Tanav` \n \n `2 .Akhil` \n \n `3 .Garry`",
+        color=0x00ffee, timestamp=ctx.message.created_at)
+    await ctx.reply(embed=embed)
+
+
+@client.command()
+async def Fun(ctx):
+    embed = discord.Embed(
+        title="Fun Commands",
+        description=
+        "`1 .Pfp` Will Show You About Your Pfp \n \n `2 .Info` Will Tell ABout Other People \n \n `3 .Rnum` For Random Number \n \n `4 .TTT` For TicTacToe \n \n `5 .Meme` To Get Meme \n \n `6 .Text` Will Dm Someone In The Server \n \n `7 .Minecraft` Will Show Commands That Fall Under Minecraft \n \n `8 .Wanted @User` Will Show Your Avatar In A Wanted Poster \n \n `9 .Delete @User` Will Put The Users Pfp In A Delete File Picture",
+        color=0x00ffee, timestamp=ctx.message.created_at)
+    await ctx.reply(embed=embed)
+
+
+@client.command()
+async def Good(ctx):
+    embed = discord.Embed(description="Thats Good! 🌈", color=0x00ffee, timestamp=ctx.message.created_at)
+    await ctx.reply(embed=embed)
+
+
+@client.command()
+async def Bad(ctx):
+    embed = discord.Embed(
+        description="Aww I Feel Bad, Hope You Feel Better! 😥", color=0xff0000, timestamp=ctx.message.created_at)
+    await ctx.reply(embed=embed)
+
+
+@client.command()
+async def Rnum(ctx):
+    embed = discord.Embed(title="Here's Your Random Number",
+        description=(random.randint(1, 101)),
+        color=0x00ffee, timestamp=ctx.message.created_at)
+    await ctx.reply(embed=embed)
+
+
+@client.command()
+async def Garry(ctx):
+    embed = discord.Embed(title='Garry',
+        description="Some Random Person From The Street",
+        color=0x00ffee, timestamp=ctx.message.created_at)
+    await ctx.reply(embed=embed)
+
+
+@client.command()
+async def TTT(ctx):
+    embed = discord.Embed(
+        title='TicTacToe Page',
+        description=
+        "Use `.tictactoe @` To Start The Game \n \n Use `.place` To Place While In Game \n \n Example: .place 1",
+        color=0x00ffee, timestamp=ctx.message.created_at)
+    await ctx.reply(embed=embed)
+
+
+@client.command()
+async def Mod(ctx):
+    embed = discord.Embed(
+        title='Mod Commands',
+        description=
+        "`REMEMBER TO LET BOT HAVE PERMS TO BAN AND KICK AND CLEAR` \n \n `.Kick @` Will Kick The Person \n \n `.Ban @` Will Ban The Person \n \n `.Unban Person#Tag` Will Unban The Person \n \n `.Clear Num` Will Clear Messages",
+        color=0xff0000, timestamp=ctx.message.created_at)
+    await ctx.reply(embed=embed)
+
+
+@client.command()
+async def Kick(ctx, member: discord.Member, *, reason=None):
+    await member.kick(reason=reason)
+    await ctx.reply(f'Kicked {member.mention}')
+
+
+@Kick.error
+async def Kick_error(ctx, error):
+    print(error)
+    if isinstance(error, commands.MissingRequiredArgument):
+        await ctx.reply("Do .Kick @")
+    elif isinstance(error, commands.BadArgument):
+        await ctx.send(
+            "Please make sure to mention/ping players (ie. <@688534433879556134>)."
+        )
+
+
+@client.command()
+async def Ban(ctx, member: discord.Member, *, reason=None):
+    await member.ban(reason=reason)
+    await ctx.reply(f'Banned {member.mention}')
+
+
+@Ban.error
+async def Ban_error(ctx, error):
+    print(error)
+    if isinstance(error, commands.MissingRequiredArgument):
+        await ctx.reply("Do .Ban @")
+    elif isinstance(error, commands.BadArgument):
+        await ctx.send(
+            "Please make sure to mention/ping players (ie. <@688534433879556134>)."
+        )
+
+
+@client.command()
+async def Clear(ctx, amount=5):
+    await ctx.channel.purge(limit=amount)
+
+
+@Clear.error
+async def Clear_error(ctx, error):
+    print(error)
+    if isinstance(error, commands.MissingRequiredArgument):
+        await ctx.reply("Do .Clear `Num`")
+    elif isinstance(error, commands.BadArgument):
+        await ctx.send(
+            "Please make sure to mention/ping players (ie. <@688534433879556134>)."
+        )
+
+
+@client.command()
+async def Unban(ctx, *, member):
+    banned_users = await ctx.guild.bans()
+    member_name, member_discriminator = member.split('#')
+
+    for ban_entry in banned_users:
+        user = ban_entry.user
+
+        if (user.name, user.discriminator) == (member_name,
+                                               member_discriminator):
+            await ctx.guild.unban(user)
+            await ctx.send(f'Unbanned {user.mention}')
+
+
+@Unban.error
+async def Unban_error(ctx, error):
+    print(error)
+    if isinstance(error, commands.MissingRequiredArgument):
+        await ctx.reply("Do .Unban Person#Tag")
+    elif isinstance(error, commands.BadArgument):
+        await ctx.send(
+            "Please make sure to mention/ping players (ie. <@688534433879556134>)."
+        )
+
+
+@client.command()
+async def Help(ctx):
+    embed = discord.Embed(
+        title="Help Page",
+        description=
+        "Bot Prefix = [`.`] \n \n `1 .Hi` Will Respond With A Question \n \n `2 .Ping` Show's The latency \n \n `3 .Inv` Invite's The Bot \n \n `4 .YT` Show's My Youtube Channel \n \n `5 .Math` Math Commands \n \n `6 .Fun` This is Fun Commands \n \n `7 .Mod` Gives Mod Commands \n \n`8 .Anime` Shows Anime List \n \n Tanav ©", timestamp=ctx.message.created_at, 
+        color=0x00ffee)
+    await ctx.reply(embed=embed)
+
+
+@client.command()
+async def Text(ctx):
+    embed = discord.Embed(title='Dm Page',
+                          description="Do .Dm",
+                          color=0xff0000, timestamp=ctx.message.created_at)
+    await ctx.reply(embed=embed)
+
+
+@client.command(name='Pfp')
+async def Pfp(ctx, *, member: discord.Member = None):
+    if not member:
+        member = ctx.message.author
+    userAvatar = member.avatar_url
+    await ctx.reply(userAvatar)
+
+
+@client.command()
+async def Meme(ctx):
+
+    embed = discord.Embed(title="Memes", color=(0x00ffee))
+
+    async with aiohttp.ClientSession() as cs:
+        async with cs.get(
+                'https://www.reddit.com/r/dankmemes/new.json?sort=hot') as r:
+            res = await r.json()
+            embed = discord.Embed(title='Heres your meme', color=0x00ff33)
+            embed.set_image(url=res['data']['children'][random.randint(0, 25)]
+                            ['data']['url'])
+            await ctx.reply(embed=embed)
+
+
+@client.command()
+async def Add(ctx, num1, num2):
+    num2 = float(num2)
+    num1 = float(num1)
+    difference = num1 + num2
+    embed = discord.Embed(title="Addition",
+                          description=f" {num1} + {num2} = {difference}",
+                          color=0x00ffee, timestamp=ctx.message.created_at)
+    await ctx.reply(embed=embed)
+
+
+@Add.error
+async def Add_error(ctx, error):
+    print(error)
+    if isinstance(error, commands.MissingRequiredArgument):
+        await ctx.reply("Do .Add `_` `_`.")
+    elif isinstance(error, commands.BadArgument):
+        await ctx.send(
+            "Please make sure to mention/ping players (ie. <@688534433879556134>)."
+        )
+
+
+@client.command()
+async def Sub(ctx, num1, num2):
+    num2 = float(num2)
+    num1 = float(num1)
+    difference = num1 - num2
+    embed = discord.Embed(title="Subtraction",
+                          description=f" {num1} - {num2} = {difference}",
+                          color=0x00ffee, timestamp=ctx.message.created_at)
+    await ctx.reply(embed=embed)
+
+
+@Sub.error
+async def Sub_error(ctx, error):
+    print(error)
+    if isinstance(error, commands.MissingRequiredArgument):
+        await ctx.reply("Hi Do .Sub `_` `_` ")
+    elif isinstance(error, commands.BadArgument):
+        await ctx.send(
+            "Please make sure to mention/ping players (ie. <@688534433879556134>)."
+        )
+
+
+@client.command()
+async def Dm(ctx, user: discord.User, *, msg):
+    await ctx.send('Sent')
+    await user.send(f'{msg}')
+
+
+
+@Dm.error
+async def Dm_error(ctx, error):
+    print(error)
+    if isinstance(error, commands.MissingRequiredArgument):
+        await ctx.reply("Do .Dm @Person `Text`.")
+    elif isinstance(error, commands.BadArgument):
+        await ctx.send(
+            "Please make sure to mention/ping players (ie. <@688534433879556134>)."
+        )
+
+
+@client.command()
+async def Mult(ctx, num1, num2):
+    num2 = float(num2)
+    num1 = float(num1)
+    mult = num1 * num2
+    embed = discord.Embed(title="Multiply",
+                          description=f" {num1} x {num2} = {mult}",
+                          color=0x00ffee, timestamp=ctx.message.created_at)
+    await ctx.reply(embed=embed)
+
+
+@Mult.error
+async def Mult_error(ctx, error):
+    print(error)
+    if isinstance(error, commands.MissingRequiredArgument):
+        await ctx.reply("Do .Mult `_` `_`.")
+    elif isinstance(error, commands.BadArgument):
+        await ctx.send(
+            "Please make sure to mention/ping players @person."
+        )
+
+
+@client.command()
+async def Div(ctx, num1, num2):
+    num2 = float(num2)
+    num1 = float(num1)
+    div = num1 / num2
+    embed = discord.Embed(title="Division",
+                          description=f" {num1} ÷ {num2} = {div}",
+                          color=0x00ffee, timestamp=ctx.message.created_at)
+    await ctx.reply(embed=embed)
+
+
+@Div.error
+async def Div_error(ctx, error):
+    print(error)
+    if isinstance(error, commands.MissingRequiredArgument):
+        await ctx.reply("Do .Div `_` `_`.")
+    elif isinstance(error, commands.BadArgument):
+        await ctx.send(
+            "Please make sure to mention/ping players (ie. <@688534433879556134>)."
+        )
+
+
+@client.command()
+async def Inv(ctx):
+    embed = discord.Embed(
+        title="Invite link's",
+        description=
+        "`Bot Invite Here`: https://dsc.gg/prodiscordbot \n \n `Main Server`: https://discord.gg/asDfYbbStg \n \n `Testing Server`: https://discord.gg/FxZrY6UQg6",
+        color=0x00ffee, timestamp=ctx.message.created_at)
+    await ctx.reply(embed=embed)
+
+
+@client.command()
+async def Tanav(ctx):
+    embed = discord.Embed(
+        title="The Owner Of ProDiscordBot",
+        description=
+        "Hello My name is Tanav And I Created This Epic Bot To Help People When Im Offline.",
+        color=0x00ffee, timestamp=ctx.message.created_at)
+    await ctx.reply(embed=embed)
+
+
+@client.command()
+async def Akhil(ctx):
+    embed = discord.Embed(
+        title="Owner's Brother",
+        description="Akhil is Tanav's Brother And Helped Code This Epic Bot",
+        color=0x00ffee, timestamp=ctx.message.created_at)
+    await ctx.reply(embed=embed)
+
+
+@client.command()
+async def YT(ctx):
+    embed = discord.Embed(
+        title="Sub to Icez_TG",
+        description=" https://www.youtube.com/channel/UCrzLrlcVN4xnKR7H4kb6OQQ",
+        color=0x00ffee, timestamp=ctx.message.created_at)
+    await ctx.reply(embed=embed)
+
+
+@client.command()
+async def Minecraft(ctx):
+    embed = discord.Embed(title="Minecraft Page",
+                          description="`1 .Mc` To Show The Owners Mc User",
+                          color=0x00ffee, timestamp=ctx.message.created_at)
+    await ctx.reply(embed=embed)
+
+
+@client.command()
+async def Mc(ctx):
+    embed = discord.Embed(title='Mc User',
+                          description="Axis_Tanav",
+                          color=0x00ffee, timestamp=ctx.message.created_at)
+    await ctx.reply(embed=embed)
+
+
+keep_alive()
+client.run(os.getenv('TOKEN'))
