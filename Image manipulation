@@ -1,0 +1,43 @@
+
+@client.command()
+async def Wanted(ctx, user: discord.Member = None):
+    if user == None:
+        user = ctx.author
+
+    wanted = Image.open("wanted.jpeg")
+
+    asset = user.avatar_url_as(size = 128)
+    
+    data = BytesIO(await asset.read())
+    
+    pfp = Image.open(data)
+    pfp = pfp.resize((789,1109))
+
+    wanted.paste(pfp, (201,394))
+
+    wanted.save("profile.jpeg")
+
+    await ctx.send(file= discord.File("profile.jpeg"))
+    return
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+@client.command()
+async def Delete(ctx, user: discord.Member = None):
+    if user == None:
+        user = ctx.author
+
+    Delete = Image.open("Delete.jpg")
+
+    asset = user.avatar_url_as(size = 128)
+    
+    data = BytesIO(await asset.read())
+    
+    pfp = Image.open(data)
+    pfp = pfp.resize((127,133))
+
+    Delete.paste(pfp, (51,83))
+
+    Delete.save("lol.jpeg")
+
+    await ctx.send(file= discord.File("lol.jpeg"))
+    return
