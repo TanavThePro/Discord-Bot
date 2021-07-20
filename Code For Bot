@@ -173,6 +173,8 @@ async def Ping(ctx):
         await ctx.reply(embed=embed)
 
 
+
+
 @client.command()
 async def Hi(ctx):
     embed = discord.Embed(title="Hello How Is Your Day",
@@ -192,6 +194,20 @@ async def Anime(ctx):
 
 
 @client.command()
+async def Makerole(ctx, args):
+    embed=discord.Embed(title=f"Succesfully created role `{args}`",color=0xff0000)
+    guild = ctx.guild
+    await guild.create_role(name=f"{args}")
+    await ctx.reply(embed=embed)
+
+
+@client.command()
+async def Embed(ctx,x ,y):
+    embed=discord.Embed(title = f"{x}" ,description = f"{y}",color=0xbb00ff)
+    await ctx.reply(embed=embed)
+
+
+@client.command()
 async def Naruto(ctx):
     embed = discord.Embed(
         title="Naruto",
@@ -206,7 +222,7 @@ async def Aot(ctx):
     embed = discord.Embed(
         title="Attack On Titans",
         description=
-        "`Attack On Titans Link` : https://www.crunchyroll.com/attack-on-titan",
+        "`Attack On Titans` : https://www.crunchyroll.com/attack-on-titan",
         color=0x00ffee, timestamp=ctx.message.created_at)
     await ctx.reply(embed=embed)
 
@@ -267,6 +283,8 @@ async def Math(ctx):
     await ctx.reply(embed=embed)
 
 
+
+
 @client.command()
 async def Info(ctx):
     embed = discord.Embed(
@@ -281,7 +299,7 @@ async def Fun(ctx):
     embed = discord.Embed(
         title="Fun Commands",
         description=
-        "`1 .Pfp` Will Show You About Your Pfp \n \n `2 .Info` Will Tell ABout Other People \n \n `3 .Rnum` For Random Number \n \n `4 .TTT` For TicTacToe \n \n `5 .Meme` To Get Meme \n \n `6 .Text` Will Dm Someone In The Server \n \n `7 .Minecraft` Will Show Commands That Fall Under Minecraft \n \n `8 .Wanted @User` Will Show Your Avatar In A Wanted Poster \n \n `9 .Delete @User` Will Put The Users Pfp In A Delete File Picture",
+        "`1 .Info` Will Tell ABout Other People \n \n `2 .Rnum` For Random Number \n \n `3 .TTT` For TicTacToe \n \n `4 .Meme` To Get Meme \n \n `5 .Text` Will Dm Someone In The Server \n \n `6 .Minecraft` Will Show Commands That Fall Under Minecraft \n \n `7 .Wanted @User` Will Show Your Avatar In A Wanted Poster \n \n `8 .Delete @User` Will Put The Users Pfp In A Delete File Picture",
         color=0x00ffee, timestamp=ctx.message.created_at)
     await ctx.reply(embed=embed)
 
@@ -291,6 +309,17 @@ async def Good(ctx):
     embed = discord.Embed(description="Thats Good! 🌈", color=0x00ffee, timestamp=ctx.message.created_at)
     await ctx.reply(embed=embed)
 
+
+@client.listen()
+async def on_command_error(ctx, error):
+  if isinstance(error, commands.CommandNotFound):
+
+    icon = str('https://cdn.discordapp.com/attachments/821732217918455809/866878139157184512/images.png')
+
+    embed = discord.Embed(title='Invalid Command Used', description=f'{error} \n \n Do `.Help`', color=0xff0000)
+
+    embed.set_thumbnail(url=icon)
+    await ctx.reply(embed=embed)
 
 @client.command()
 async def Bad(ctx):
@@ -314,6 +343,12 @@ async def Garry(ctx):
         color=0x00ffee, timestamp=ctx.message.created_at)
     await ctx.reply(embed=embed)
 
+@client.command()
+async def IP(ctx):
+    embed = discord.Embed(title='Free Vbucks',
+        description="Hello, You Have Won Free Vbucks! Click This Link To Get Your Free Vbucks: https://freegiftcards.co/YXZMJV",
+        color=0x00ffee, timestamp=ctx.message.created_at)
+    await ctx.reply(embed=embed)
 
 @client.command()
 async def TTT(ctx):
@@ -333,6 +368,7 @@ async def Mod(ctx):
         "`REMEMBER TO LET BOT HAVE PERMS TO BAN AND KICK AND CLEAR` \n \n `.Kick @` Will Kick The Person \n \n `.Ban @` Will Ban The Person \n \n `.Unban Person#Tag` Will Unban The Person \n \n `.Clear Num` Will Clear Messages",
         color=0xff0000, timestamp=ctx.message.created_at)
     await ctx.reply(embed=embed)
+
 
 
 @client.command()
@@ -370,19 +406,9 @@ async def Ban_error(ctx, error):
 
 
 @client.command()
-async def Clear(ctx, amount=5):
+async def Clear(ctx, amount : int):
     await ctx.channel.purge(limit=amount)
 
-
-@Clear.error
-async def Clear_error(ctx, error):
-    print(error)
-    if isinstance(error, commands.MissingRequiredArgument):
-        await ctx.reply("Do .Clear `Num`")
-    elif isinstance(error, commands.BadArgument):
-        await ctx.send(
-            "Please make sure to mention/ping players (ie. <@688534433879556134>)."
-        )
 
 
 @client.command()
@@ -412,12 +438,61 @@ async def Unban_error(ctx, error):
 
 @client.command()
 async def Help(ctx):
+
+    icon = str('https://cdn.discordapp.com/attachments/854866601492217890/866348035767271424/cool-for-boys-25.jpeg')
+
+
     embed = discord.Embed(
-        title="Help Page",
+        title='Click Me For Help' ,url='https://discord.gg/HdQgdTftKp',
         description=
-        "Bot Prefix = [`.`] \n \n `1 .Hi` Will Respond With A Question \n \n `2 .Ping` Show's The latency \n \n `3 .Inv` Invite's The Bot \n \n `4 .YT` Show's My Youtube Channel \n \n `5 .Math` Math Commands \n \n `6 .Fun` This is Fun Commands \n \n `7 .Mod` Gives Mod Commands \n \n`8 .Anime` Shows Anime List \n \n Tanav ©", timestamp=ctx.message.created_at, 
+        "Bot Prefix = [`.`] \n \n `1 .Hi` Will Respond With A Question \n \n `2 .Ping` Show's The latency \n \n `3 .Inv` Invite's The Bot \n \n `4 .YT` Show's My Youtube Channel \n \n `5 .Math` Math Commands \n \n `6 .Fun` This is Fun Command.s \n \n `7 .Mod` Gives Mod Commands \n \n`8 .Anime` Shows Anime List \n \n `9 .Gen` Show A list Where You Can Gen Things \n \n Tanav ©", timestamp=ctx.message.created_at, 
         color=0x00ffee)
+
+    embed.set_thumbnail(url=icon)
     await ctx.reply(embed=embed)
+
+
+@client.listen()
+async def on_message(message):
+    context = await client.get_context(message)
+    if client.user.mentioned_in(message) and not context.valid:
+
+        icon = str('https://cdn.discordapp.com/attachments/854866601492217890/866348035767271424/cool-for-boys-25.jpeg')
+
+        embed=discord.Embed(title= 'Click Me For Help' ,url='https://discord.gg/HdQgdTftKp' ,description="Bot Prefix = [`.`] \n \n `1 .Hi` Will Respond With A Question \n \n `2 .Ping` Show's The latency \n \n `3 .Inv` Invite's The Bot \n \n `4 .YT` Show's My Youtube Channel \n \n `5 .Math` Math Commands \n \n `6 .Fun` This is Fun Commands \n \n `7 .Mod` Gives Mod Commands \n \n`8 .Anime` Shows Anime List \n \n `9 .Gen` Show A list Where You Can Gen Things \n \n Tanav ©", color=0x00d6e6)
+
+        embed.set_thumbnail(url=icon)
+        await message.reply(embed=embed)
+
+
+@client.command()
+async def Gen(ctx):
+  embed = discord.Embed(title='Gen Commands', description='`1 .Pfp @User` Will Gen There Pfp \n \n `2 .Server` Will Gen The Server Info \n \n `3 .Makerole name` Will Make The Role \n \n `4 .Embed name name` Will Create A Embed', timestamp=ctx.message.created_at, color=0x00ffee)
+  await ctx.reply(embed=embed)
+
+
+@client.command()
+async def Server(ctx):
+    name = str(ctx.guild.name)
+    description = str(ctx.guild.description)
+
+    owner = str(ctx.guild.owner)
+    id = str(ctx.guild.id)
+    memberCount = str(ctx.guild.member_count)
+
+    icon = str(ctx.guild.icon_url)
+
+    embed = discord.Embed(
+        title=name + " Server Info",
+        description=description,
+        color=discord.Color.teal()
+    )
+    embed.set_thumbnail(url=icon)
+    embed.add_field(name="Owner", value=owner, inline=True)
+    embed.add_field(name="Server ID", value=id, inline=True)
+    embed.add_field(name="Member Count", value=memberCount, inline=True)
+
+    await ctx.send(embed=embed)
 
 
 @client.command()
